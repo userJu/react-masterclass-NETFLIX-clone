@@ -34,3 +34,21 @@ export function getMovies() {
     (response) => response.json()
   );
 }
+
+export function getLatestMovies() {
+  return fetch(`${BASE_PATH}/movie/latest?api_key=${API_KEY}`).then(
+    (response) => response.json()
+  );
+}
+
+export function getTopMovies() {
+  return fetch(`${BASE_PATH}/movie/top_rated?api_key=${API_KEY}`).then(
+    (response) => response.json()
+  );
+}
+
+export function getUpcomingMovies() {
+  return fetch(`${BASE_PATH}/movie/latest?api_key=${API_KEY}`).then(
+    (response) => response.json()
+  );
+}

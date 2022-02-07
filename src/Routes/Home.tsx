@@ -3,7 +3,13 @@ import { useState } from "react";
 import { useQuery } from "react-query";
 import { useMatch, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { getMovies, IGetMoviesResult } from "../api";
+import {
+  getLatestMovies,
+  getMovies,
+  getTopMovies,
+  getUpcomingMovies,
+  IGetMoviesResult,
+} from "../api";
 import { makeImagePath } from "../utilities";
 
 const Wrapper = styled.div`
@@ -48,6 +54,7 @@ const Row = styled(motion.div)`
   grid-template-columns: repeat(6, 1fr);
   position: absolute;
   width: 100%;
+  margin-bottom: 2rem;
 `;
 
 const Box = styled(motion.div)<{ bgPhoto: string }>`
@@ -145,14 +152,31 @@ const offset = 6;
 
 const Home = () => {
   const navigate = useNavigate();
+  const [index, setIndex] = useState(0);
+  const [leaving, setLeaving] = useState(false);
   // const bigMovieMatch = useMatch<{ movieId: string }>("/movies/:movieId");
   const bigMovieMatch = useMatch("/movies/:movieId");
   const { scrollY } = useViewportScroll();
+
+  // 영화 가져오기
   const { data, isLoading } = useQuery<IGetMoviesResult>(
     ["movies", "nowPlaying"],
     getMovies
   );
+  // 최신 영화 가져오기
+  const { data: latestData, isLoading: latestIsLoading } = useQuery(
+    ["movies", "latest"],
+    getLatestMovies
+  );
+  console.log(latestData);
+  // 영화 top순으로 가져오기
+  const { data: topData, isLoading: topDataIsLoading } =
+    useQuery<IGetMoviesResult>(["movies", "top"], getTopMovies);
 
+  // Upcoming 영화
+  const { data: upcomingData, isLoading: upcomingDataIsLoading } =
+    useQuery<IGetMoviesResult>(["movies", "upcoming"], getUpcomingMovies);
+  console.log(upcomingData);
   const rowVariants = {
     hidden: {
       x: window.innerWidth - 10,
@@ -164,9 +188,6 @@ const Home = () => {
       x: -window.innerWidth + 10,
     },
   };
-
-  const [index, setIndex] = useState(0);
-  const [leaving, setLeaving] = useState(false);
 
   const increaseIndex = () => {
     if (data) {
@@ -215,6 +236,38 @@ const Home = () => {
                 key={index}
               >
                 {data?.results
+                  .slice(1)
+                  .slice(offset * index, offset * index + offset)
+                  .map((movie) => (
+                    <Box
+                      onClick={() => {
+                        onBoxClicked(movie.id);
+                      }}
+                      layoutId={movie.id + ""}
+                      key={movie.id}
+                      whileHover="hover"
+                      initial="normal"
+                      variants={boxVariants}
+                      transition={{ type: "tween" }}
+                      bgPhoto={makeImagePath(movie.backdrop_path, "w500")}
+                    >
+                      <Info variants={infoVariants}>
+                        <h4>{movie.title}</h4>
+                      </Info>
+                    </Box>
+                  ))}
+              </Row>
+              {/* top movies */}
+              <Row
+                variants={rowVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ type: "tween", duration: 1 }}
+                key={index + "0"}
+                style={{ top: 300 }}
+              >
+                {topData?.results
                   .slice(1)
                   .slice(offset * index, offset * index + offset)
                   .map((movie) => (
